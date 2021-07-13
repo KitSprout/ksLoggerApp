@@ -1,4 +1,4 @@
-package com.kitsprout.system;
+package com.kitsprout.util;
 
 import android.os.Environment;
 import android.util.Log;
@@ -7,35 +7,36 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Locale;
 
-public class ksFile {
+public class CsvFile {
 
     private static final String TAG = "KS-FILE";
 
-    private final String defaultFloader = "ksLogger";
+    private final String defaultFolder = "ksLogger";
 
     private File file;
     private String fileName = "";
-    private String defaultFolderPath = Environment.getExternalStorageDirectory().getAbsolutePath() + '/' + defaultFloader;
+    private String defaultFolderPath = Environment.getExternalStorageDirectory().getAbsolutePath() + '/' + defaultFolder;
     private String subFolderPath = "";
 
-    public ksFile() {
+    public CsvFile() {
 
     }
 
-    public ksFile(String subFolder) {
+    public CsvFile(String subFolder) {
         this.subFolderPath = defaultFolderPath + '/' + subFolder;
         createFolder(this.subFolderPath);
     }
 
-    public ksFile(String subFolder, String fileName) {
+    public CsvFile(String subFolder, String fileName) {
         this.fileName = fileName;
         this.subFolderPath = defaultFolderPath + '/' + subFolder;
         createFolder(this.subFolderPath);
         createFile(this.subFolderPath, fileName);
     }
 
-    public ksFile(String defaultFolderPath, String subFolder, String fileName) {
+    public CsvFile(String defaultFolderPath, String subFolder, String fileName) {
         this.fileName = fileName;
         this.defaultFolderPath = defaultFolderPath;
         this.subFolderPath = defaultFolderPath + '/' + subFolder;
@@ -109,16 +110,16 @@ public class ksFile {
         if (lens > 1024 * 1024)
         {
             lens /= 1024 * 1024;
-            sizeString = String.format("%.3f MB", lens);
+            sizeString = String.format(Locale.US,"%.3f MB", lens);
         }
         else if (lens > 1024)
         {
             lens /= 1024;
-            sizeString = String.format("%.3f KB", lens);
+            sizeString = String.format(Locale.US,"%.3f KB", lens);
         }
         else
         {
-            sizeString = String.format("%.0f B", lens);
+            sizeString = String.format(Locale.US,"%.0f B", lens);
         }
         return sizeString;
     }

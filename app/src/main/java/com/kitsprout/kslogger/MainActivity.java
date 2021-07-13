@@ -6,48 +6,55 @@ import androidx.core.app.ActivityCompat;
 import android.Manifest;
 import android.app.Service;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.google.android.material.snackbar.Snackbar;
 
-import com.kitsprout.system.ksDevice;
-import com.kitsprout.system.ksFile;
+import com.kitsprout.util.CsvFile;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
     private static final String TAG = "KS-LOG";
+    private static final String TAG_SENS = "KS-SENS";
     private View mainLayout;
-    private TextView informationText;
-    private Button logTriggerButton;
+    private TextView infoText;
+    private TextView samplingRateText;
+    private TextView calGyrDataText;
+    private TextView calAccDataText;
+    private TextView calMagDataText;
+    private TextView calMagBiasDataText;
+    private TextView logInfoText;
+    private ToggleButton logToggleButton;
 
-    //
-    private String phoneInfo;
-    private ksFile logFile = new ksFile("log");
-    private String logString = "";
+    // file
+    private CsvFile logFile = new CsvFile("log");
     private boolean logEnable = false;
+    private long logCount = 0;
 
     // sensor
-    private String sensorInfo;
-    private SensorManager sensorManager;
-    private int sensorMode = SensorManager.SENSOR_DELAY_GAME;
-    private float[] gyr  = new float[6];
-    private float[] acc  = new float[6];
-    private float[] mag  = new float[6];
-//    private float[] magU = new float[6];
+    private SensorManager mSensorManager;
+    private Sensor mAccelerometer;
+    private Sensor mGyroscope;
+    private Sensor mMagnetometer;
+    private float[] gyr = new float[6];
+    private float[] acc = new float[6];
+    private float[] mag = new float[6];
+    private float dt = 0;
+    private long[] ts = new long[2];    // last timestamp, timestamp
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,28 +63,34 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         // layout
         mainLayout = findViewById(R.id.mainLayout);
-        informationText = findViewById(R.id.InformationTextView);
-        logTriggerButton = findViewById(R.id.LogTriggerButton);
-
-        // sensor startup
-        sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
-        setSensorUpdateMode(sensorList, sensorMode);
-
-        // get model, cpu, android version
-        ksDevice.showSystemParameter();
-        phoneInfo = ksDevice.getSystemInformationString();
-        informationText.setText(String.format("%s\nSENSOR: %s", phoneInfo, sensorInfo));
+        infoText = findViewById(R.id.InfoText);
+        samplingRateText = findViewById(R.id.SamplingRateText);
+        calGyrDataText = findViewById(R.id.CalGyrDataText);
+        calAccDataText = findViewById(R.id.CalAccDataText);
+        calMagDataText = findViewById(R.id.CalMagDataText);
+        calMagBiasDataText = findViewById(R.id.CalMagBiasDataText);
+        logInfoText = findViewById(R.id.LogInfoText);
+        logToggleButton = findViewById(R.id.LogToggleButton);
 
         // request permission
         requestFileSystemPermission();
 
+        // sensor startup
+        sensorSetup();
+        sensorStart();
+
         // keep screen on
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        infoText.setText(String.format(Locale.US, "%8.4f %8.4f %8.4f",
+                gyr[0], gyr[1], gyr[2]));
+        infoText = findViewById(R.id.InfoText);
+        samplingRateText = findViewById(R.id.SamplingRateText);
     }
 
     private void requestFileSystemPermission() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-            Snackbar.make(mainLayout, "已取得檔案儲存權限", Snackbar.LENGTH_SHORT).show();
+//            Snackbar.make(mainLayout, "已取得檔案儲存權限", Snackbar.LENGTH_SHORT).show();
             return;
         }
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
@@ -94,229 +107,51 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-    private final int[] sensorList = {
-//            Sensor.TYPE_GYROSCOPE,                      // x[0], y[1], z[2] (rad/s)
-            Sensor.TYPE_GYROSCOPE_UNCALIBRATED,         // x[0], y[1], z[2] (rad/s), bias x[3], y[4], z[5] (rad/s)
-//            Sensor.TYPE_ACCELEROMETER,                  // x[0], y[1], z[2] (m/s^2)
-            Sensor.TYPE_ACCELEROMETER_UNCALIBRATED,     // x[0], y[1], z[2] (m/s^2), bias x[3], y[4], z[5] (m/s^2)
-//            Sensor.TYPE_MAGNETIC_FIELD,                 // x[0], y[1], z[2] (uT)
-            Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED,    // x[0], y[1], z[2] (uT),    bias x[3], y[4], z[5] (uT)
-//            Sensor.TYPE_PRESSURE,                       // p[0] (hPa or millibar)
-//            Sensor.TYPE_AMBIENT_TEMPERATURE,            // t[0] (degC)
-//            Sensor.TYPE_LINEAR_ACCELERATION,            // x[0], y[1], z[2] (m/s^2)
-//            Sensor.TYPE_GRAVITY,                        // x[0], y[1], z[2] (m/s^2)
-//            Sensor.TYPE_ROTATION_VECTOR,                // v[0], v[1], v[2], v[3],   heading Accuracy (in radians) (-1 if unavailable)
-//            Sensor.TYPE_GAME_ROTATION_VECTOR,           // acc + gyr, without magnetometer
-//            Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR,    // acc + mag, without gyroscope
-    };
-    private final String[][] sensorListString = {
-//            {"GYROSCOPE                  ", "GC"},  // gyr calibrated
-            {"GYROSCOPE_UNCALIBRATED     ", "GU"},  // gyr uncalibrated
-//            {"ACCELEROMETER              ", "AC"},  // acc calibrated
-            {"ACCELEROMETER_UNCALIBRATED ", "AU"},  // acc uncalibrated
-//            {"MAGNETIC_FIELD             ", "MC"},  // mag calibrated
-            {"MAGNETIC_FIELD_UNCALIBRATED", "MU"},  // mag uncalibrated
-//            {"PRESSURE                   ", "PC"},  // pressure
-//            {"AMBIENT_TEMPERATURE        ", "TC"},  // temperature
-//            {"LINEAR_ACCELERATION        ", "AL"},  // linear acc
-//            {"GRAVITY                    ", "AG"},  // gravity
-//            {"ROTATION_VECTOR            ", "RC"},  // rotation
-//            {"GAME_ROTATION_VECTOR       ", "RG"},  // rotation, gyr + acc
-//            {"GEOMAGNETIC_ROTATION_VECTOR", "RM"},  // rotation, acc + mag
-
-    };
-
-    private boolean[] sensorEnable = new boolean[sensorList.length];
-    private long[][] sensorTimestamp = new long[sensorList.length][2];  // dt, timestamp
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        float[] values = event.values;
-        float dt = getSensorSamplingTime(event);
-        switch (event.sensor.getType()) {
-//            case Sensor.TYPE_GYROSCOPE:
-//                System.arraycopy(values, 0, gyr, 0, 3);
-//                Log.d(TAG, String.format("[GC][%.4f] %12.6f %12.6f %12.6f", dt, gyr[0], gyr[1], gyr[2]));
-//                break;
-            case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:
-                System.arraycopy(values, 0, gyr, 0, 6);
-//                Log.d(TAG, String.format("[GU][%.4f] %12.6f %12.6f %12.6f ... %12.6f %12.6f %12.6f ... %s", dt, gyr[0], gyr[1], gyr[2], gyr[3], gyr[4], gyr[5], event.sensor.getVendor()));
-//                Log.d(TAG, String.format("[GU][%.4f] %12.6f %12.6f %12.6f ... %12.6f %12.6f %12.6f", dt, gyr[0]-gyr[3], gyr[1]-gyr[4], gyr[2]-gyr[5], gyr[3], gyr[4], gyr[5]));
-//                Log.d(TAG, String.format("[IMU][G] %12.6f %12.6f %12.6f [A] %12.6f %12.6f %12.6f [M] %12.6f %12.6f %12.6f [T] %.6f",
-//                        gyr[0]-gyr[3], gyr[1]-gyr[4], gyr[2]-gyr[5],
-//                        acc[0]-acc[3], acc[1]-acc[4], acc[2]-acc[5],
-//                        mag[0]-mag[3], mag[1]-mag[4], mag[2]-mag[5], dt));
-                float[] yg = new float[6];
-                float[] ya = new float[6];
-                float[] ym = new float[6];
-                for (int i = 0; i < 6; i++)
-                {
-                    yg[i] = gyr[i];
-                    ya[i] = acc[i];
-                    ym[i] = mag[i];
-                }
-                for (int i = 0; i < 3; i++)
-                {
-                    yg[i] -= yg[i+3];
-                    ya[i] -= ya[i+3];
-                    ym[i] -= ym[i+3];
-                }
-                final String rawString = String.format("[G] %12.6f %12.6f %12.6f\n[A] %12.6f %12.6f %12.6f\n[M] %12.6f %12.6f %12.6f\n[B] %12.6f %12.6f %12.6f\n[T] %.6f",
-                        yg[0], yg[1], yg[2],
-                        ya[0], ya[1], ya[2],
-                        ym[0], ym[1], ym[2],
-                        ym[3], ym[4], ym[5], dt);
-                informationText.setText(String.format("%s", rawString));
-                updateLog(yg, ya, ym, dt, true);
-                break;
-//            case Sensor.TYPE_ACCELEROMETER:
-//                System.arraycopy(values, 0, acc, 0, 3);
-//                Log.d(TAG, String.format("[AC][%.4f] %12.6f %12.6f %12.6f", dt, acc[0], acc[1], acc[2]));
-//                break;
-            case Sensor.TYPE_ACCELEROMETER_UNCALIBRATED:
-                System.arraycopy(values, 0, acc, 0, 6);
-//                Log.d(TAG, String.format("[AU][%.4f] %12.6f %12.6f %12.6f ... %12.6f %12.6f %12.6f", dt, acc[0], acc[1], acc[2], acc[3], acc[4], acc[5]));
-//                Log.d(TAG, String.format("[AU][%.4f] %12.6f %12.6f %12.6f ... %12.6f %12.6f %12.6f", dt, acc[0]-acc[3], acc[1]-acc[4], acc[2]-acc[5], acc[3], acc[4], acc[5]));
-                break;
-//            case Sensor.TYPE_MAGNETIC_FIELD:
-//                System.arraycopy(values, 0, mag, 0, 3); // mag = values;
-//                // check mag uncalibrated data is enable
-//                if (!sensorEnable[getSensorListIndex(Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED)]) {
-//                    System.arraycopy(values, 0, magU, 0, 3); // magU = mag;
-//                }
-//                Log.d(TAG, String.format("[MC][%.4f] %12.6f %12.6f %12.6f", dt, mag[0], mag[1], mag[2]));
-//                break;
-            case Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED:
-                System.arraycopy(values, 0, mag, 0, 6);
-//                Log.d(TAG, String.format("[MU][%.4f] %12.6f %12.6f %12.6f ... %12.6f %12.6f %12.6f", dt, magU[0], magU[1], magU[2], magU[3], magU[4], magU[5]));
-//                Log.d(TAG, String.format("[MU][%.4f] %12.6f %12.6f %12.6f ... %12.6f %12.6f %12.6f", dt, mag[0]-mag[3], mag[1]-mag[4], mag[2]-mag[5], mag[3], mag[4], mag[5]));
-                break;
-//            case Sensor.TYPE_PRESSURE:
-//                Log.d(TAG, String.format("[PC][%.4f] %12.6f", dt, values[0]));
-//                break;
-//            case Sensor.TYPE_AMBIENT_TEMPERATURE:
-//                Log.d(TAG, String.format("[TC][%.4f] %12.6f", dt, values[0]));
-//                break;
-//            case Sensor.TYPE_LINEAR_ACCELERATION:
-//                Log.d(TAG, String.format("[AL][%.4f] %12.6f %12.6f %12.6f", dt, values[0], values[1], values[2]));
-//                break;
-//            case Sensor.TYPE_GRAVITY:
-//                Log.d(TAG, String.format("[AG][%.4f] %12.6f %12.6f %12.6f", dt, values[0], values[1], values[2]));
-//                break;
-//            case Sensor.TYPE_ROTATION_VECTOR:
-//                Log.d(TAG, String.format("[RC][%.4f] %12.6f %12.6f %12.6f %12.6f", dt, values[0], values[1], values[2], values[3]));
-//                break;
-//            case Sensor.TYPE_GAME_ROTATION_VECTOR:
-//                Log.d(TAG, String.format("[RG][%.4f] %12.6f %12.6f %12.6f %12.6f", dt, values[0], values[1], values[2], values[3]));
-//                break;
-//            case Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR:
-//                Log.d(TAG, String.format("[RM][%.4f] %12.6f %12.6f %12.6f %12.6f", dt, values[0], values[1], values[2], values[3]));
-//                break;
-            default:
-                Log.w(TAG, "Unexpected sensor type: " + event.sensor.getType());
+    public void onLogButtonClickEvent(View view) {
+        if (logToggleButton.isChecked()) {
+            logStart();
         }
-    }
-
-    private int getSensorListIndex(int type) {
-        for (int i = 0; i < sensorList.length; i++) {
-            if (sensorList[i] == type) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private float getSensorSamplingTime(SensorEvent event) {
-        int idx = getSensorListIndex(event.sensor.getType());
-        if (idx == -1) {
-            return 0;
-        }
-        if (sensorTimestamp[idx][1] == 0) {
-            sensorTimestamp[idx][1] = event.timestamp;
-            return 0;
-        }
-        sensorTimestamp[idx][0] = event.timestamp - sensorTimestamp[idx][1];
-        sensorTimestamp[idx][1] = event.timestamp;
-        return sensorTimestamp[idx][0] / 1000000000.0f;
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-    }
-
-    private void setSensorUpdateMode(int[] list, int mode) {
-        StringBuilder info = new StringBuilder();
-        sensorManager.unregisterListener(this);
-        for (int i = 0; i < list.length; i++) {
-            sensorEnable[i] = sensorManager.registerListener(this,
-                    sensorManager.getDefaultSensor(list[i]), mode);
-            if (sensorEnable[i]) {
-                if (info.length() != 0) {
-                    info.append(", ");
-                }
-                info.append(sensorListString[i][1]);
-            }
-            sensorInfo = info.toString();
-        }
-        // print information
-        for (int i = 0; i < list.length; i++) {
-            if (sensorEnable[i]) {
-                Log.d(TAG, String.format("%s -> ENABLE", sensorListString[i][0]));
-            } else {
-                Log.w(TAG, String.format("%s -> DISABLE", sensorListString[i][0]));
-            }
-        }
-    }
-
-    public void onButtonLogClickEvent(View view) {
-        if (logEnable) {
-            stopLogger();
-            logTriggerButton.setText("START");
-            logTriggerButton.setTextColor(Color.GRAY);
-            Log.d(TAG, "onButtonLogClickEvent Off");
-        } else {
-            startLogger();
-            logTriggerButton.setText("STOP");
-            logTriggerButton.setTextColor(Color.RED);
-            Log.d(TAG, "onButtonLogClickEvent On");
+        else {
+            logStop();
         }
         vibrateDelay(200);
     }
-    private void startLogger() {
+
+    private void logStart() {
         String fileName = "LOG" + "_APP_" + getSystemTimeString(getSystemTime(), "yyyyMMdd_HHmmss") + ".csv";
         boolean status = logFile.createFile(fileName);
         if (status) {
             // csv format: gyr(3), acc(3), mag(3), dt(1), bias(3)
-            String rawString = phoneInfo + "\n\n";
-            rawString += "GYR.X,GYR.Y,GYR.Z,ACC.X,ACC.Y,ACC.Z,MAG.X,MAG.Y,MAG.Z";
+            String rawString = "";
+            rawString += "IDX, TS, GYR.X,GYR.Y,GYR.Z,ACC.X,ACC.Y,ACC.Z,MAG.X,MAG.Y,MAG.Z";
             rawString += ",DT";
             rawString += ",MAG.BIAS.X,MAG.BIAS.Y,MAG.BIAS.Z";
             rawString += "\n";
             logFile.writeFile(rawString);
             logEnable = true;
-            logString = "";
+            logCount = 0;
         } else {
             Log.d(TAG, "No file read/write permission");
         }
     }
 
-    private void stopLogger() {
+    private void logStop() {
         logEnable = false;
-        logString = "";
     }
 
-    private void updateLog(float[] yg, float[] ya, float[] ym, float dt, boolean write2csv) {
-        if (logEnable) {
-            logString += String.format("%.10f,%.10f,%.10f,%.10f,%.10f,%.10f,%.10f,%.10f,%.10f", yg[0], yg[1], yg[2], ya[0], ya[1], ya[2], ym[0], ym[1], ym[2]);
-            logString += String.format(",%.10f", dt);
-            logString += String.format(",%.10f,%.10f,%.10f", ym[3], ym[4], ym[5]);
-            logString += String.format("\n");
-            if (write2csv) {
-                logFile.writeFile(logString);
-                logString = "";
-            }
-        }
+    private void write2file(float[] yg, float[] ya, float[] ym, float dt) {
+        String logString = "";
+        logString += String.format(Locale.US, "%d,%d",
+                ++logCount, ts[1]);
+        logString += String.format(Locale.US, "%.10f,%.10f,%.10f,%.10f,%.10f,%.10f,%.10f,%.10f,%.10f",
+                yg[0], yg[1], yg[2], ya[0], ya[1], ya[2], ym[0], ym[1], ym[2]);
+        logString += String.format(Locale.US, ",%.10f",
+                dt);
+        logString += String.format(Locale.US, ",%.10f,%.10f,%.10f",
+                ym[3], ym[4], ym[5]);
+        logString += "\n";
+        logFile.writeFile(logString);
+        logInfoText.setText(logFile.getFileSizeString());
     }
 
     private Date getSystemTime() {
@@ -328,9 +163,85 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         return formatter.format(date);
     }
 
+    private void sensorSetup() {
+        mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER_UNCALIBRATED);
+        mGyroscope     = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
+        mMagnetometer  = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED);
+        Log.d(TAG, String.format("mAccelerometer.vensor = %s", mAccelerometer.getVendor()));
+        Log.d(TAG, String.format("mGyroscope.vensor = %s", mGyroscope.getVendor()));
+        Log.d(TAG, String.format("mMagnetField.vensor = %s", mMagnetometer.getVendor()));
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        float[] values = event.values;
+        switch (event.sensor.getType()) {
+            case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:
+                dt = sensorUpdateSamplingTime(event) / 1000000000.0f; // second
+                System.arraycopy(values, 0, gyr, 0, 6);
+                gyr[0] -= gyr[3];
+                gyr[1] -= gyr[4];
+                gyr[2] -= gyr[5];
+                infoText.setText(getSystemTimeString(getSystemTime(), "HH:mm:ss.SSS"));
+                samplingRateText.setText(String.format(Locale.US, "%.2f Hz", 1.0/dt));
+                calGyrDataText.setText(String.format(Locale.US, "%8.4f %8.4f %8.4f",
+                        gyr[0], gyr[1], gyr[2]));
+                Log.d(TAG_SENS, String.format("[G] %12.6f %12.6f %12.6f ... %12.6f %12.6f %12.6f ... %.6f",
+                        gyr[0], gyr[1], gyr[2], gyr[3], gyr[4], gyr[5], dt));
+                if (logEnable) {
+                    write2file(gyr, acc, mag, dt);
+                }
+                break;
+            case Sensor.TYPE_ACCELEROMETER_UNCALIBRATED:
+                System.arraycopy(values, 0, acc, 0, 6);
+                acc[0] -= acc[3];
+                acc[1] -= acc[4];
+                acc[2] -= acc[5];
+                calAccDataText.setText(String.format(Locale.US, "%8.4f %8.4f %8.4f",
+                        acc[0], acc[1], acc[2]));
+                Log.d(TAG_SENS, String.format("[A] %12.6f %12.6f %12.6f ... %12.6f %12.6f %12.6f",
+                        acc[0], acc[1], acc[2], acc[3], acc[4], acc[5]));
+                break;
+            case Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED:
+                mag[0] -= mag[3];
+                mag[1] -= mag[4];
+                mag[2] -= mag[5];
+                calMagDataText.setText(String.format(Locale.US, "%8.2f %8.2f %8.2f",
+                        mag[0], mag[1], mag[2]));
+                calMagBiasDataText.setText(String.format(Locale.US, "%8.2f %8.2f %8.2f",
+                        mag[3], mag[4], mag[5]));
+                System.arraycopy(values, 0, mag, 0, 6);
+                Log.d(TAG_SENS, String.format("[M] %12.6f %12.6f %12.6f ... %12.6f %12.6f %12.6f",
+                        mag[0], mag[1], mag[2], mag[3], mag[4], mag[5]));
+                break;
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    }
+
+    private void sensorStart()
+    {
+        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
+        mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
+        mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_GAME);
+    }
+
+    private void sensorStop()
+    {
+        mSensorManager.unregisterListener(this);
+    }
+
+    private float sensorUpdateSamplingTime(SensorEvent event) {
+        ts[0] = ts[1];
+        ts[1] = event.timestamp;
+        return (ts[1] - ts[0]);
+    }
+
     private void vibrateDelay(long milliseconds) {
         Vibrator vibrator = (Vibrator)getApplication().getSystemService(Service.VIBRATOR_SERVICE);
         vibrator.vibrate(milliseconds);
     }
-
 }
