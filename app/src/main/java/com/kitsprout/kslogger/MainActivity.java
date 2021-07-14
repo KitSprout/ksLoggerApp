@@ -50,9 +50,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Sensor mAccelerometer;
     private Sensor mGyroscope;
     private Sensor mMagnetometer;
+//    private Sensor mMagnetometerCali;
     private float[] gyr = new float[6];
     private float[] acc = new float[6];
     private float[] mag = new float[6];
+    private float[] magc = new float[3];
     private float dt = 0;
     private long[] ts = new long[2];    // last timestamp, timestamp
 
@@ -123,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (status) {
             // csv format: gyr(3), acc(3), mag(3), dt(1), bias(3)
             String rawString = "";
-            rawString += "IDX, TS, GYR.X,GYR.Y,GYR.Z,ACC.X,ACC.Y,ACC.Z,MAG.X,MAG.Y,MAG.Z";
+            rawString += "IDX,TS,GYR.X,GYR.Y,GYR.Z,ACC.X,ACC.Y,ACC.Z,MAG.X,MAG.Y,MAG.Z";
             rawString += ",DT";
             rawString += ",MAG.BIAS.X,MAG.BIAS.Y,MAG.BIAS.Z";
             rawString += "\n";
@@ -143,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         String logString = "";
         logString += String.format(Locale.US, "%d,%d",
                 ++logCount, ts[1]);
-        logString += String.format(Locale.US, "%.10f,%.10f,%.10f,%.10f,%.10f,%.10f,%.10f,%.10f,%.10f",
+        logString += String.format(Locale.US, ",%.10f,%.10f,%.10f,%.10f,%.10f,%.10f,%.10f,%.10f,%.10f",
                 yg[0], yg[1], yg[2], ya[0], ya[1], ya[2], ym[0], ym[1], ym[2]);
         logString += String.format(Locale.US, ",%.10f",
                 dt);
@@ -168,6 +170,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER_UNCALIBRATED);
         mGyroscope     = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
         mMagnetometer  = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED);
+//        mMagnetometerCali = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         Log.d(TAG, String.format("mAccelerometer.vensor = %s", mAccelerometer.getVendor()));
         Log.d(TAG, String.format("mGyroscope.vensor = %s", mGyroscope.getVendor()));
         Log.d(TAG, String.format("mMagnetField.vensor = %s", mMagnetometer.getVendor()));
@@ -203,7 +206,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 Log.d(TAG_SENS, String.format("[A] %12.6f %12.6f %12.6f ... %12.6f %12.6f %12.6f",
                         acc[0], acc[1], acc[2], acc[3], acc[4], acc[5]));
                 break;
+//            case Sensor.TYPE_MAGNETIC_FIELD:
+//                System.arraycopy(values, 0, magc, 0, 3);
+//                calMagBiasDataText.setText(String.format(Locale.US, "%8.2f %8.2f %8.2f",
+//                        magc[0], magc[1], magc[2]));
+//                Log.d(TAG_SENS, String.format("[MC] %12.6f %12.6f %12.6f",
+//                        magc[0], magc[1], magc[2]));
+//                break;
             case Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED:
+                System.arraycopy(values, 0, mag, 0, 6);
                 mag[0] -= mag[3];
                 mag[1] -= mag[4];
                 mag[2] -= mag[5];
@@ -211,7 +222,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         mag[0], mag[1], mag[2]));
                 calMagBiasDataText.setText(String.format(Locale.US, "%8.2f %8.2f %8.2f",
                         mag[3], mag[4], mag[5]));
-                System.arraycopy(values, 0, mag, 0, 6);
                 Log.d(TAG_SENS, String.format("[M] %12.6f %12.6f %12.6f ... %12.6f %12.6f %12.6f",
                         mag[0], mag[1], mag[2], mag[3], mag[4], mag[5]));
                 break;
@@ -224,9 +234,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private void sensorStart()
     {
-        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
         mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
+        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
         mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_GAME);
+//        mSensorManager.registerListener(this, mMagnetometerCali, SensorManager.SENSOR_DELAY_GAME);
     }
 
     private void sensorStop()
