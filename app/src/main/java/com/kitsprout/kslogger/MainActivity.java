@@ -50,12 +50,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Sensor mAccelerometer;
     private Sensor mGyroscope;
     private Sensor mMagnetometer;
-//    private Sensor mMagnetometerCali;
     private float[] gyr = new float[6];
     private float[] acc = new float[6];
     private float[] mag = new float[6];
-    private float[] magc = new float[3];
-    private float dt = 0;
+    private long dtns = 0;
     private long[] ts = new long[2];    // last timestamp, timestamp
 
     @Override
@@ -123,11 +121,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         String fileName = "LOG" + "_APP_" + getSystemTimeString(getSystemTime(), "yyyyMMdd_HHmmss") + ".csv";
         boolean status = logFile.createFile(fileName);
         if (status) {
-            // csv format: gyr(3), acc(3), mag(3), dt(1), bias(3)
+            // csv format: sn, ts, dt, gyr(3), acc(3), mag(3), bias(3)
             String rawString = "";
-            rawString += "IDX,TS,GYR.X,GYR.Y,GYR.Z,ACC.X,ACC.Y,ACC.Z,MAG.X,MAG.Y,MAG.Z";
-            rawString += ",DT";
-            rawString += ",MAG.BIAS.X,MAG.BIAS.Y,MAG.BIAS.Z";
+            rawString += "sn,ts,dt,gx,gy,gz,ax,ay,az,mx,my,mz,mbx,mby,mbz";
             rawString += "\n";
             logFile.writeFile(rawString);
             logEnable = true;
@@ -141,14 +137,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         logEnable = false;
     }
 
-    private void write2file(float[] yg, float[] ya, float[] ym, float dt) {
+    private void write2file(long sn, long ts, long dt, float[] yg, float[] ya, float[] ym) {
         String logString = "";
-        logString += String.format(Locale.US, "%d,%d",
-                ++logCount, ts[1]);
+        logString += String.format(Locale.US, "%d,%d,%d",
+                sn, ts, dt);
         logString += String.format(Locale.US, ",%.10f,%.10f,%.10f,%.10f,%.10f,%.10f,%.10f,%.10f,%.10f",
                 yg[0], yg[1], yg[2], ya[0], ya[1], ya[2], ym[0], ym[1], ym[2]);
-        logString += String.format(Locale.US, ",%.10f",
-                dt);
         logString += String.format(Locale.US, ",%.10f,%.10f,%.10f",
                 ym[3], ym[4], ym[5]);
         logString += "\n";
@@ -170,7 +164,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER_UNCALIBRATED);
         mGyroscope     = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
         mMagnetometer  = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED);
-//        mMagnetometerCali = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         Log.d(TAG, String.format("mAccelerometer.vensor = %s", mAccelerometer.getVendor()));
         Log.d(TAG, String.format("mGyroscope.vensor = %s", mGyroscope.getVendor()));
         Log.d(TAG, String.format("mMagnetField.vensor = %s", mMagnetometer.getVendor()));
@@ -181,7 +174,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         float[] values = event.values;
         switch (event.sensor.getType()) {
             case Sensor.TYPE_GYROSCOPE_UNCALIBRATED:
-                dt = sensorUpdateSamplingTime(event) / 1000000000.0f; // second
+                dtns = sensorUpdateSamplingTime(event); // second
+                float dt = dtns / 1000000000.0f;
                 System.arraycopy(values, 0, gyr, 0, 6);
                 gyr[0] -= gyr[3];
                 gyr[1] -= gyr[4];
@@ -193,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 Log.d(TAG_SENS, String.format("[G] %12.6f %12.6f %12.6f ... %12.6f %12.6f %12.6f ... %.6f",
                         gyr[0], gyr[1], gyr[2], gyr[3], gyr[4], gyr[5], dt));
                 if (logEnable) {
-                    write2file(gyr, acc, mag, dt);
+                    write2file(++logCount, ts[1], dtns, gyr, acc, mag);
                 }
                 break;
             case Sensor.TYPE_ACCELEROMETER_UNCALIBRATED:
@@ -245,7 +239,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mSensorManager.unregisterListener(this);
     }
 
-    private float sensorUpdateSamplingTime(SensorEvent event) {
+    private long sensorUpdateSamplingTime(SensorEvent event) {
         ts[0] = ts[1];
         ts[1] = event.timestamp;
         return (ts[1] - ts[0]);
