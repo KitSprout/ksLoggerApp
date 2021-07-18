@@ -122,10 +122,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         boolean status = logFile.createFile(fileName);
         if (status) {
             // csv format: sn, ts, dt, gyr(3), acc(3), mag(3), bias(3)
-            String rawString = "";
-            rawString += "sn,ts,dt,gx,gy,gz,ax,ay,az,mx,my,mz,mbx,mby,mbz";
-            rawString += "\n";
-            logFile.writeFile(rawString);
+            logFile.writeFile("sn,ts,dt,gx,gy,gz,ax,ay,az,mx,my,mz,mbx,mby,mbz");
             logEnable = true;
             logCount = 0;
         } else {
@@ -139,13 +136,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private void write2file(long sn, long ts, long dt, float[] yg, float[] ya, float[] ym) {
         String logString = "";
-        logString += String.format(Locale.US, "%d,%d,%d",
+        logString += String.format(Locale.US, "\n%d,%d,%d",
                 sn, ts, dt);
         logString += String.format(Locale.US, ",%.10f,%.10f,%.10f,%.10f,%.10f,%.10f,%.10f,%.10f,%.10f",
                 yg[0], yg[1], yg[2], ya[0], ya[1], ya[2], ym[0], ym[1], ym[2]);
         logString += String.format(Locale.US, ",%.10f,%.10f,%.10f",
                 ym[3], ym[4], ym[5]);
-        logString += "\n";
         logFile.writeFile(logString);
         logInfoText.setText(logFile.getFileSizeString());
     }
