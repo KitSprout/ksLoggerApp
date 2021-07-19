@@ -172,4 +172,292 @@
             android:textSize="16sp" />
     </LinearLayout>
 
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/SensorChipGroup"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
+        app:chipSpacingHorizontal="6dp"
+        app:chipSpacingVertical="6dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensSnChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:checked="true"
+            android:text="SN"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensTsChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:checked="true"
+            android:text="TS"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensDtChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:checked="true"
+            android:text="DT"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensGChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:checked="true"
+            android:text="G"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensAChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:checked="true"
+            android:text="A"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensMChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:checked="true"
+            android:text="M"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensGrChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:text="GR"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensArChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:text="AR"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensMrChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:text="MR"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensGbChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:text="GB"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensAbChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:text="AB"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensMbChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:checked="true"
+            android:text="MB"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensPChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:text="P"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensTChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:text="T"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensAgChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:text="AG"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensAlChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:text="AL"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensQChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:text="RV"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensQaChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:text="RVA"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/SensQmChip"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:checkable="true"
+            android:text="RVM"
+            android:textSize="16sp"
+            app:chipEndPadding="0dp"
+            app:chipIconSize="12dp"
+            app:chipMinHeight="40dp"
+            app:chipMinTouchTargetSize="10dp"
+            app:chipStartPadding="4dp"
+            app:textStartPadding="6dp" />
+    </com.google.android.material.chip.ChipGroup>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
