@@ -56,6 +56,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private long dtns = 0;
     private long[] ts = new long[2];    // last timestamp, timestamp
 
+    public String getDeviceName() {
+        String manufacturer = android.os.Build.MANUFACTURER.toUpperCase();
+        String model = android.os.Build.MODEL.replace("-", "")
+                .replace("_", "").replace(" ", "");
+        return manufacturer + " " + model;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,6 +78,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         calMagBiasDataText = findViewById(R.id.CalMagBiasDataText);
         logInfoText = findViewById(R.id.LogInfoText);
         logToggleButton = findViewById(R.id.LogToggleButton);
+
+        // device information
+        Log.d(TAG, getDeviceName() + " " + android.os.Build.HARDWARE + " Android " + android.os.Build.VERSION.RELEASE);
 
         // request permission
         requestFileSystemPermission();
@@ -118,7 +128,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     private void logStart() {
-        String fileName = "LOG" + "_APP_" + getSystemTimeString(getSystemTime(), "yyyyMMdd_HHmmss") + ".csv";
+        String fileName = "LOG_" + getDeviceName().replace(" ", "_") + "_"
+                + getSystemTimeString(getSystemTime(), "yyyyMMdd_HHmmss") + ".csv";
         boolean status = logFile.createFile(fileName);
         if (status) {
             // csv format: sn, ts, dt, gyr(3), acc(3), mag(3), bias(3)
@@ -160,9 +171,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER_UNCALIBRATED);
         mGyroscope     = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
         mMagnetometer  = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED);
-        Log.d(TAG, String.format("mAccelerometer.vensor = %s", mAccelerometer.getVendor()));
-        Log.d(TAG, String.format("mGyroscope.vensor = %s", mGyroscope.getVendor()));
-        Log.d(TAG, String.format("mMagnetField.vensor = %s", mMagnetometer.getVendor()));
+        Log.d(TAG, String.format("mAccelerometer.vendor = %s", mAccelerometer.getVendor()));
+        Log.d(TAG, String.format("mGyroscope.vendor     = %s", mGyroscope.getVendor()));
+        Log.d(TAG, String.format("mMagnetField.vendor   = %s", mMagnetometer.getVendor()));
     }
 
     @Override
