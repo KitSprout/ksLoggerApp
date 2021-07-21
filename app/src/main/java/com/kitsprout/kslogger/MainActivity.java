@@ -32,6 +32,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static final String TAG_SENS = "KS-SENS";
     private View mainLayout;
     private TextView infoText;
+    private TextView fileCountText;
     private TextView samplingRateText;
     private TextView calGyrDataText;
     private TextView calAccDataText;
@@ -71,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // layout
         mainLayout = findViewById(R.id.mainLayout);
         infoText = findViewById(R.id.InfoText);
+        fileCountText = findViewById(R.id.FileCountText);
         samplingRateText = findViewById(R.id.SamplingRateText);
         calGyrDataText = findViewById(R.id.CalGyrDataText);
         calAccDataText = findViewById(R.id.CalAccDataText);
@@ -82,6 +84,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // device information
         Log.d(TAG, getDeviceName() + " " + android.os.Build.HARDWARE + " Android " + android.os.Build.VERSION.RELEASE);
 
+        // get log file count
+        fileCountText.setText(String.valueOf(logFile.getListFilesCount()));
+
         // request permission
         requestFileSystemPermission();
 
@@ -91,11 +96,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         // keep screen on
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-        infoText.setText(String.format(Locale.US, "%8.4f %8.4f %8.4f",
-                gyr[0], gyr[1], gyr[2]));
-        infoText = findViewById(R.id.InfoText);
-        samplingRateText = findViewById(R.id.SamplingRateText);
     }
 
     private void requestFileSystemPermission() {
@@ -118,6 +118,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     public void onLogButtonClickEvent(View view) {
+        fileCountText.setText(String.valueOf(logFile.getListFilesCount()));
         if (logToggleButton.isChecked()) {
             logStart();
         }

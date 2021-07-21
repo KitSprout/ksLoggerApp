@@ -123,4 +123,19 @@ public class CsvFile {
         }
         return sizeString;
     }
+
+    public File[] getListFiles() {
+        File dir = new File(this.subFolderPath);
+        return dir.listFiles();
+    }
+
+    public int getListFilesCount() {
+        File[] files = this.getListFiles();
+        if (files != null) {
+            return files.length;
+        }
+        else {
+            return 0;
+        }
+    }
 }
