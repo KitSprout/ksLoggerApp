@@ -1,2 +1,2 @@
-adb pull ./sdcard/ksLogger
-adb shell rm -rf ./sdcard/ksLogger/log/*.csv
+adb pull ./sdcard/Documents/ksLogger
+adb shell rm -rf ./sdcard/Documents/ksLogger/*.csv

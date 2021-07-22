@@ -17,7 +17,8 @@ public class CsvFile {
 
     private File file;
     private String fileName = "";
-    private String defaultFolderPath = Environment.getExternalStorageDirectory().getAbsolutePath() + '/' + defaultFolder;
+    private final File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS);
+    private String defaultFolderPath = path.getPath() + '/' + defaultFolder;
     private String subFolderPath = "";
 
     public CsvFile() {
@@ -45,6 +46,7 @@ public class CsvFile {
     }
 
     private void createFolder(String folder) {
+//        Log.d(TAG, Environment.DIRECTORY_DOCUMENTS);
         File wallpaperDirectory = new File(folder);
         wallpaperDirectory.mkdirs();
     }

@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private ToggleButton logToggleButton;
 
     // file
-    private CsvFile logFile = new CsvFile("log");
+    private CsvFile logFile = new CsvFile("");
     private boolean logEnable = false;
     private long logCount = 0;
 
